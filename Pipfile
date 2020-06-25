@@ -1,0 +1,12 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+
+[dev-packages]
+setuptools = ">=41.0"
+mypy = ">=0.770"
+pre-commit = "*"
+
+[packages]
+flowd = {editable = true, path = "."}
