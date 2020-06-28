@@ -3,13 +3,13 @@ import contextlib
 import wave
 import tempfile
 import webrtcvad
-import pyaudio
 import torch
-from pyannote.audio.utils.signal import Binarize
 from array import array
-# import time
+import time
 import signal
-
+import threading
+import psutil
+import pyaudio
 
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
@@ -58,6 +58,7 @@ def audio_generator(stream):
     # while duration < 15 and not leave:
     while not leave:
         # duration = time.time() - start_time
+        time.sleep(0.005)
         chunk = stream.read(CHUNK_SIZE)
         yield chunk
 
@@ -87,6 +88,13 @@ class Frame(object):
     def __init__(self, frame_bytes, timestamp, duration):
         self.bytes = frame_bytes
         self.timestamp = timestamp
+        self.duration = duration
+
+
+class Segment(object):
+    """Represents a "frame" of audio data."""
+    def __init__(self, frame_bytes, duration):
+        self.frame_bytes = frame_bytes
         self.duration = duration
 
 
@@ -161,29 +169,35 @@ def vad_collector(sample_rate, frame_duration_ms,
             # audio we've collected.
             if num_unvoiced > UNVOICED_FRAMES_RATE * ring_buffer.maxlen:
                 triggered = False
-                yield b''.join([f.bytes for f in voiced_frames])
+                yield Segment(b''.join([f.bytes for f in voiced_frames]), get_frames_duration(voiced_frames))
                 ring_buffer.clear()
                 voiced_frames = []
     # If we have any leftover voiced audio when we run out of input,
     # yield it.
     if voiced_frames:
-        yield b''.join([f.bytes for f in voiced_frames])
+        yield Segment(b''.join([f.bytes for f in voiced_frames]), get_frames_duration(voiced_frames))
 
 
-def get_speech_duration(path, sad):
-    test_file = {'uri': 'filename', 'audio': path}
-    sad_scores = sad(test_file)
-    binarize = Binarize(offset=0.52, onset=0.52, log_scale=True,
-                        min_duration_off=0.1, min_duration_on=0.1)
-    speech = binarize.apply(sad_scores, dimension=1)
-    return speech.duration()
+def get_frames_duration(frames):
+    return len(frames) * CHUNK_DURATION_MS / 1000
+
+
+def is_busy():
+    load = psutil.cpu_percent(percpu=True)
+    return min(load) > 50
+
+
+def get_speech_duration(sad, segment):
+    if is_busy():
+        return segment.duration
+    else:
+        return sad.get_timeline().duration()
 
 
 def start_collect():
     vad = webrtcvad.Vad(VAD_MODE)
-    sad = torch.hub.load('pyannote/pyannote-audio', 'sad_ami')
+    pipeline = torch.hub.load('pyannote/pyannote-audio', 'sad_ami', pipeline=True)
 
-    signal.signal(signal.SIGINT, handle_int)
     stream = start_listening()
     try:
         frames = frame_generator(audio_generator(stream))
@@ -194,8 +208,8 @@ def start_collect():
 
         s = 0
         for i, segment in enumerate(segments):
-            write_wave(path, segment, RATE)
-            s += get_speech_duration(path, sad)
+            write_wave(path, segment.frame_bytes, RATE)
+            s += get_speech_duration(pipeline({'audio': path}), segment)
         print("Total speech length: ", s)
     finally:
         stop_listening(stream)
@@ -206,4 +220,11 @@ def stop_collect():
 
 
 if __name__ == '__main__':
-    start_collect()
+    signal.signal(signal.SIGINT, handle_int)
+    x = threading.Thread(target=start_collect, args=())
+    print("Main    : before running thread")
+    x.start()
+    print("Main    : wait for the thread to finish")
+    time.sleep(20)
+    stop_collect()
+    print("Main    : all done")
