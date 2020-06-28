@@ -12,6 +12,11 @@ BROWSER_REGEXP = r'(.*GitHub.*)|(.*Stack Overflow.*)|(Python\.org)|' \
 
 
 class ProductivityWindowCollector(BaseCollector):
+    """
+    Window in a the productivity class activated
+    ---
+    Number of 15 seconds intervals per minute (for example, 3 minutes = 12 intervals)﻿
+    """
     metric_name = "productivity_window"
 
     APPS = (
@@ -33,8 +38,11 @@ class ProductivityWindowCollector(BaseCollector):
         ('chrome', re.compile(BROWSER_REGEXP, re.I))
     )
 
+    INTERVAL_SEC = 15
+
     def __init__(self) -> None:
-        self.count = 0
+        self.count = 0  # for interval
+        self._second_count = 0
         self.is_run = True
 
     def _is_productivity_class(self, cur_win) -> bool:
@@ -61,8 +69,17 @@ class ProductivityWindowCollector(BaseCollector):
             logging.debug(f'Current window {current_window}')
 
             if self._is_productivity_class(current_window):
-                self.count += 1
-                logging.debug(f'Current state {self.count}')
+                self._second_count += 1
+
+                if self._second_count > self.INTERVAL_SEC:
+                    self._second_count = 0
+                    self.count += 1
+            else:
+                # kind of distraction, reset seconds counter ?
+                self._second_count = 0
+
+            logging.debug(f'Current state {self.count}')
+            logging.debug(f'second_count {self._second_count}')
 
             time.sleep(1)
 
