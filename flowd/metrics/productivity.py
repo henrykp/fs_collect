@@ -1,9 +1,9 @@
 import logging
 import re
+import threading
 import time
 
 from flowd.metrics import BaseCollector
-from flowd.utils.windows import get_current_active_window
 
 
 BROWSER_REGEXP = r'(.*GitHub.*)|(.*Stack Overflow.*)|(Python\.org)|' \
@@ -64,6 +64,9 @@ class ProductivityWindowCollector(BaseCollector):
         return is_productive_process and is_productive_title
 
     def start_collect(self):
+        # for threading need import wmi lib
+        from flowd.utils.windows import get_current_active_window
+
         while self.is_run:
             current_window = get_current_active_window()
             logging.debug(f'Current window {current_window}')
@@ -94,6 +97,24 @@ class ProductivityWindowCollector(BaseCollector):
 
 
 if __name__ == "__main__":
+    # Example of usage
     logging.basicConfig(level=logging.DEBUG, format="%(levelname)-8s %(message)s")
     win_collector = ProductivityWindowCollector()
-    win_collector.start_collect()
+    x = threading.Thread(target=win_collector.start_collect, args=())
+    logging.debug("Main    : create and start thread")
+    x.start()
+    logging.debug("Main    : wait for the thread to finish")
+    time.sleep(20)
+    logging.debug("Main    : stop collect")
+    win_collector.stop_collect()
+
+    metric_name, value = win_collector.get_current_state()
+    logging.info(f'metric_name {metric_name}')
+    logging.info(f'value {value}')
+
+    logging.debug("Main    : cleanup")
+    win_collector.cleanup()
+    metric_name, value = win_collector.get_current_state()
+    logging.info(f'metric_name {metric_name}')
+    logging.info(f'value {value}')
+    assert value == 0
