@@ -218,13 +218,13 @@ def stop_collect():
 
 
 def start_collect():
-    x = threading.Thread(target=_collect_internal, args=())
-    x.start()
+    _collect_internal()
 
 
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, handle_int)
-    start_collect()
+    x = threading.Thread(target=start_collect(), args=())
+    x.start()
     print("Listening... (Press Ctrl+C to interrupt)")
     time.sleep(60)
     stop_collect()
