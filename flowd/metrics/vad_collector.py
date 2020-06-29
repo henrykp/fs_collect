@@ -10,10 +10,9 @@ import time
 import threading
 import psutil
 import pyaudio
+import os
 
 from flowd.metrics import BaseCollector
-
-leave = False
 
 
 def normalize(snd_data) -> array:
@@ -48,6 +47,7 @@ class VoiceActivationDetectionCollector(BaseCollector):
         self.voiced_frames_rate = 0.9
         self.unvoiced_frames_rate = 0.9
         self.max_voiced_frames = 100
+        self.leave = False
 
     def start_listening(self):
         pa = pyaudio.PyAudio()
@@ -63,7 +63,7 @@ class VoiceActivationDetectionCollector(BaseCollector):
 
     def audio_generator(self):
         self.stream.start_stream()
-        while not leave:
+        while not self.leave:
             time.sleep(0.005)
             chunk = self.stream.read(self.chunk_size)
             yield chunk
@@ -201,14 +201,12 @@ class VoiceActivationDetectionCollector(BaseCollector):
 
             for i, segment in enumerate(segments):
                 self.count += self._get_speech_duration(segment)
-            print("Total speech length: ", self.count)
         finally:
             self.stop_listening()
 
-    @staticmethod
-    def stop_collect() -> None:
-        global leave
-        leave = True
+    def stop_collect(self) -> None:
+        self.leave = True
+        os.remove(self.path)
 
     def start_collect(self) -> None:
         self._collect_internal()
@@ -228,7 +226,6 @@ if __name__ == '__main__':
     logging.debug("Main    : create and start thread")
     x.start()
     logging.debug("Main    : wait for the thread to finish")
-    print("Listening... (Press Ctrl+C to interrupt)")
     time.sleep(20)
     logging.debug("Main    : stop collect")
     collector.stop_collect()
