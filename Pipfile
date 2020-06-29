@@ -6,7 +6,10 @@ verify_ssl = true
 [dev-packages]
 setuptools = ">=41.0"
 mypy = ">=0.770"
+flake8 = "*"
 pre-commit = "*"
 
 [packages]
-flowd = {editable = true, path = "."}
+flowd = {editable = true,path = "."}
+wmi = "1.5.1"
+pywin32 = "228"
