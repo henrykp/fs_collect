@@ -24,7 +24,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/henrykp/fs_collect",
     license="MIT",
-    python_requires=">=3.6",
+    python_requires="==3.6",
     zip_safe=False,
     packages=find_packages(),
     install_requires=[
