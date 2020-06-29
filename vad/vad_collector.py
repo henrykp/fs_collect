@@ -11,20 +11,13 @@ import threading
 import psutil
 import pyaudio
 
-FORMAT = pyaudio.paInt16
-CHANNELS = 1
 RATE = 16000
 CHUNK_DURATION_MS = 30       # supports 10, 20 and 30 (ms)
-PADDING_DURATION_MS = 1500   # 1 sec jugement
 CHUNK_SIZE = int(RATE * CHUNK_DURATION_MS / 1000)  # chunk to read
-CHUNK_BYTES = CHUNK_SIZE * 2  # 16bit = 2 bytes, PCM
-NUM_PADDING_CHUNKS = int(PADDING_DURATION_MS / CHUNK_DURATION_MS)
-NUM_WINDOW_CHUNKS = int(400 / CHUNK_DURATION_MS)  # 400 ms/ 30ms  ge
-NUM_WINDOW_CHUNKS_END = NUM_WINDOW_CHUNKS * 2
-START_OFFSET = int(NUM_WINDOW_CHUNKS * CHUNK_DURATION_MS * 0.5 * RATE)
 VOICED_FRAMES_RATE = 0.9
 UNVOICED_FRAMES_RATE = 0.9
 VAD_MODE = 3
+MAX_VOICED_FRAMES = 100
 
 leave = False
 
@@ -36,8 +29,8 @@ def handle_int(sig, chunk):
 
 def start_listening():
     pa = pyaudio.PyAudio()
-    stream = pa.open(format=FORMAT,
-                     channels=CHANNELS,
+    stream = pa.open(format=pyaudio.paInt16,
+                     channels=1,
                      rate=RATE,
                      input=True,
                      start=False,
@@ -52,12 +45,7 @@ def stop_listening(stream):
 
 def audio_generator(stream):
     stream.start_stream()
-    # start_time = time.time()
-    print("Listening... (Press Ctrl+C to interrupt)")
-    # duration = 0
-    # while duration < 15 and not leave:
     while not leave:
-        # duration = time.time() - start_time
         time.sleep(0.005)
         chunk = stream.read(CHUNK_SIZE)
         yield chunk
@@ -104,12 +92,15 @@ def frame_generator(audio):
     the sample rate.
     Yields Frames of the requested duration.
     """
-    # n = int(sample_rate * (CHUNK_DURATION_MS / 1000.0) * 2)
     timestamp = 0.0
     duration = float(CHUNK_DURATION_MS) / 1000.0
     for a in audio:
         yield Frame(a, timestamp, duration)
         timestamp += duration
+
+
+def get_segment(voiced_frames):
+    return Segment(b''.join([f.bytes for f in voiced_frames]), get_frames_duration(voiced_frames))
 
 
 def vad_collector(sample_rate, frame_duration_ms,
@@ -157,11 +148,17 @@ def vad_collector(sample_rate, frame_duration_ms,
                 # audio that's already in the ring buffer.
                 for f, s in ring_buffer:
                     voiced_frames.append(f)
+
+                yield get_segment(voiced_frames)
+                voiced_frames = []
                 ring_buffer.clear()
         else:
             # We're in the TRIGGERED state, so collect the audio data
             # and add it to the ring buffer.
             voiced_frames.append(frame)
+            if len(voiced_frames) > MAX_VOICED_FRAMES:
+                yield get_segment(voiced_frames)
+                voiced_frames = []
             ring_buffer.append((frame, is_speech))
             num_unvoiced = len([f for f, speech in ring_buffer if not speech])
             # If more than 90% of the frames in the ring buffer are
@@ -169,7 +166,8 @@ def vad_collector(sample_rate, frame_duration_ms,
             # audio we've collected.
             if num_unvoiced > UNVOICED_FRAMES_RATE * ring_buffer.maxlen:
                 triggered = False
-                yield Segment(b''.join([f.bytes for f in voiced_frames]), get_frames_duration(voiced_frames))
+
+                yield get_segment(voiced_frames)
                 ring_buffer.clear()
                 voiced_frames = []
     # If we have any leftover voiced audio when we run out of input,
@@ -184,17 +182,18 @@ def get_frames_duration(frames):
 
 def is_busy():
     load = psutil.cpu_percent(percpu=True)
-    return min(load) > 50
+    return min(load) > 100
 
 
-def get_speech_duration(sad, segment):
+def _get_speech_duration(path, pipeline, segment):
     if is_busy():
         return segment.duration
     else:
-        return sad.get_timeline().duration()
+        write_wave(path, segment.frame_bytes, RATE)
+        return pipeline({'audio': path}).get_timeline().duration()
 
 
-def start_collect():
+def _collect_internal():
     vad = webrtcvad.Vad(VAD_MODE)
     pipeline = torch.hub.load('pyannote/pyannote-audio', 'sad_ami', pipeline=True)
 
@@ -208,8 +207,7 @@ def start_collect():
 
         s = 0
         for i, segment in enumerate(segments):
-            write_wave(path, segment.frame_bytes, RATE)
-            s += get_speech_duration(pipeline({'audio': path}), segment)
+            s += _get_speech_duration(path, pipeline, segment)
         print("Total speech length: ", s)
     finally:
         stop_listening(stream)
@@ -219,12 +217,14 @@ def stop_collect():
     handle_int(None, None)
 
 
+def start_collect():
+    x = threading.Thread(target=_collect_internal, args=())
+    x.start()
+
+
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, handle_int)
-    x = threading.Thread(target=start_collect, args=())
-    print("Main    : before running thread")
-    x.start()
-    print("Main    : wait for the thread to finish")
-    time.sleep(20)
+    start_collect()
+    print("Listening... (Press Ctrl+C to interrupt)")
+    time.sleep(60)
     stop_collect()
-    print("Main    : all done")
