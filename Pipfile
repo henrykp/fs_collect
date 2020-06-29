@@ -11,3 +11,5 @@ pre-commit = "*"
 
 [packages]
 flowd = {editable = true,path = "."}
+wmi = "1.5.1"
+pywin32 = "228"
