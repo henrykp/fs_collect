@@ -43,6 +43,7 @@ class ActivityWindowCollector(BaseCollector):
 
     def cleanup(self) -> None:
         self.count = 0
+        self.is_run = True
 
 
 if __name__ == "__main__":
