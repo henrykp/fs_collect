@@ -1,3 +1,7 @@
+import ctypes
+from ctypes import Structure, POINTER, WINFUNCTYPE, windll  # type: ignore
+from ctypes.wintypes import BOOL, UINT, DWORD  # type: ignore
+
 import traceback
 import logging
 from typing import Optional
@@ -44,3 +48,35 @@ def get_current_active_window() -> dict:
         title = "unknown"
 
     return {"app_name": app, "title": title}
+
+
+
+
+class LastInputInfo(Structure):
+    _fields_ = [
+        ("cbSize", UINT),
+        ("dwTime", DWORD)
+    ]
+
+
+def _getLastInputTick() -> int:
+    prototype = WINFUNCTYPE(BOOL, POINTER(LastInputInfo))
+    paramflags = ((1, "lastinputinfo"), )
+    c_GetLastInputInfo = prototype(("GetLastInputInfo", ctypes.windll.user32), paramflags)  # type: ignore
+
+    l = LastInputInfo()
+    l.cbSize = ctypes.sizeof(LastInputInfo)
+    assert 0 != c_GetLastInputInfo(l)
+    return l.dwTime
+
+
+def _getTickCount() -> int:
+    prototype = WINFUNCTYPE(DWORD)
+    paramflags = ()
+    c_GetTickCount = prototype(("GetTickCount", ctypes.windll.kernel32), paramflags)  # type: ignore
+    return c_GetTickCount()
+
+
+def seconds_since_last_input():
+    seconds_since_input = (_getTickCount() - _getLastInputTick()) / 1000
+    return seconds_since_input
