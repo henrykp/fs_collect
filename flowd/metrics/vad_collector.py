@@ -209,6 +209,7 @@ class VoiceActivationDetectionCollector(BaseCollector):
         os.remove(self.path)
 
     def start_collect(self) -> None:
+        self.leave = False
         self._collect_internal()
 
     def get_current_state(self) -> tuple:
