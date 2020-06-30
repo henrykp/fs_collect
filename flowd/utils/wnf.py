@@ -48,3 +48,20 @@ def do_write(state_name, data):
         print('[Error] Could not write for this statename: 0x{:x}'.format(status))
         return False
 
+
+def set_focus_mode(mode_type) -> None:
+    """
+    Turns on/off Windows Focus assist mode
+    :param mode_type: turns on/off mode configured for an automatic rules:
+     0 - Off,
+     1 - when I am playing a game,
+     2 - When I am using an app in full screen mode
+    :return: None
+    """
+    modes = {
+        0: [0, 0, 0, 0],
+        1: [1, 0, 0, 0],
+        2: [2, 0, 0, 0],
+    }
+    do_write(format_state_name("WNF_SHEL_QUIET_MOMENT_SHELL_MODE_CHANGED"), bytes(modes[mode_type]))
+
