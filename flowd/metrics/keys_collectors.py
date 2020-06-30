@@ -9,8 +9,20 @@ import time
 from flowd.metrics import BaseCollector
 
 SHORTCUTS = [
+    # save
     "ctrl+s",
-    "ctrl+space"
+    # code assist
+    "ctrl+space",
+    # copy
+    "ctrl+c",
+    "ctrl+insert",
+    # paste
+    "ctrl+v",
+    "windows+v",
+    "shift+insert",
+    # cut
+    "ctrl+x",
+    "shift+delete"
 ]
 
 
