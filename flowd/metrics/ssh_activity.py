@@ -32,7 +32,7 @@ class SSHActivityCollector(BaseCollector):
                         logging.debug(x)
                         self.count += 1
 
-            logging.debug(f'Current state {self.count}')
+            logging.debug(f'Current state {self.metric_name} {self.count}')
             time.sleep(1)
 
     def get_current_state(self) -> tuple:

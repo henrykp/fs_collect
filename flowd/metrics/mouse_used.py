@@ -18,10 +18,12 @@ class MouseUsedCollector(BaseCollector):
 
     def __init__(self) -> None:
         self.second_per_minute = 0
+        self.is_run = True
         self._last_event_time = 0
 
     def stop_collect(self) -> None:
         mouse.unhook(self.mouse_used_callback)
+        self.is_run = False
 
     def mouse_used_callback(self, event):
         duration_sec = event.time - self._last_event_time
@@ -33,6 +35,9 @@ class MouseUsedCollector(BaseCollector):
     def start_collect(self) -> None:
         # set callback on all mouse activities
         mouse.hook(self.mouse_used_callback)
+
+        while self.is_run:
+            pass
 
     def get_current_state(self) -> tuple:
         return self.metric_name, self.second_per_minute
