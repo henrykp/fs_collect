@@ -37,7 +37,7 @@ class AFKCollector(BaseCollector):
                 if self._afk:
                     self.count += 1
 
-            logging.debug(f'Current state: {self.count}')
+            logging.debug(f'Current state {self.metric_name} {self.count}')
             logging.debug(f'AFK: {self._afk}')
             time.sleep(1)
 

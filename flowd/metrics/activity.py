@@ -31,7 +31,7 @@ class ActivityWindowCollector(BaseCollector):
                 self.count += 1
 
             self._prev_window = current_window
-            logging.debug(f'Current state {self.count}')
+            logging.debug(f'Current state {self.metric_name} {self.count}')
 
             time.sleep(1)
 

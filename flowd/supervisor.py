@@ -9,6 +9,8 @@ from types import ModuleType
 from typing import List
 from typing import Optional
 
+import pythoncom
+
 from flowd import metrics
 
 MetricModules = List[ModuleType]
@@ -38,7 +40,7 @@ class Supervisor:
     def run(self) -> None:
         if not self._collectors:
             logging.error(
-                "we didn't find any collector impplementations, nothing to do"
+                "we didn't find any collector implementations, nothing to do"
             )
             return
 
@@ -83,12 +85,14 @@ class CollectorThread(threading.Thread):
         )
 
     def run(self) -> None:
+        pythoncom.CoInitialize()
         try:
             self._collector.start_collect()
         except Exception as e:
             logging.error(f"Unexpected error in {self.name}: {e}", exc_info=True)
             return
         finally:
+            pythoncom.CoUninitialize()
             self._collector.stop_collect()
 
     def pop(self) -> metrics.CollectedData:
