@@ -81,7 +81,7 @@ class ProductivityWindowCollector(BaseCollector):
                 # kind of distraction, reset seconds counter ?
                 self._second_count = 0
 
-            logging.debug(f'Current state {self.count}')
+            logging.debug(f'Current state {self.metric_name} {self.count}')
             logging.debug(f'second_count {self._second_count}')
 
             time.sleep(1)

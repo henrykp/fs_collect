@@ -23,12 +23,14 @@ class MouseUsedSelectionCollector(BaseCollector):
 
     def __init__(self) -> None:
         self.count = 0
+        self.is_run = True
 
         self._pressed_event = None
         self._move_event = None
 
     def stop_collect(self) -> None:
         mouse.unhook(self.mouse_selection_callback)
+        self.is_run = False
 
     def mouse_selection_callback(self, event):
         if isinstance(event, ButtonEvent) and event.button == self.LEFT_BUTTON:
@@ -43,7 +45,7 @@ class MouseUsedSelectionCollector(BaseCollector):
                         selection_sec = event.time - self._pressed_event.time
                         if selection_sec <= self.MOVING_MAX_DURATION_SEC:
                             self.count += 1
-                            logging.debug(self.count)
+                            logging.debug(f'Current state {self.metric_name} {self.count}')
 
                 # clean up events
                 self._pressed_event = None
@@ -56,11 +58,15 @@ class MouseUsedSelectionCollector(BaseCollector):
         # set callback on all mouse activities
         mouse.hook(self.mouse_selection_callback)
 
+        while self.is_run:
+            pass
+
     def get_current_state(self) -> tuple:
         return self.metric_name, self.count
 
     def cleanup(self) -> None:
         self.count = 0
+        self.is_run = True
 
 
 if __name__ == '__main__':
