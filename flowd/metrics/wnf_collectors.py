@@ -29,10 +29,12 @@ class PriorityModeCollector(BaseCollector):
             if wnf.do_read(wnf.format_state_name("WNF_SHEL_QUIETHOURS_ACTIVE_PROFILE_CHANGED")) == PRIORITY_MODE:
                 self.time_in_mode += time.time() - start_time
                 start_time = time.time()
-            time.sleep(0.01)
+            time.sleep(1e6)
 
     def get_current_state(self) -> tuple:
-        return self.metric_name, int(round(self.time_in_mode))
+        t = int(round(self.time_in_mode))
+        logging.debug(f'Time in priority mode: {t}')
+        return self.metric_name, t
 
     def cleanup(self) -> None:
         self.time_in_mode = 0
@@ -56,10 +58,12 @@ class AlertModeCollector(BaseCollector):
             if wnf.do_read(wnf.format_state_name("WNF_SHEL_QUIETHOURS_ACTIVE_PROFILE_CHANGED")) == ALERT_MODE:
                 self.time_in_mode += time.time() - start_time
                 start_time = time.time()
-            time.sleep(0.01)
+            time.sleep(1e6)
 
     def get_current_state(self) -> tuple:
-        return self.metric_name, int(round(self.time_in_mode))
+        t = int(round(self.time_in_mode))
+        logging.debug(f'Time in alert mode: {t}')
+        return self.metric_name, t
 
     def cleanup(self) -> None:
         self.time_in_mode = 0

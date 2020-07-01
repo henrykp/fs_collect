@@ -37,7 +37,7 @@ class MouseUsedCollector(BaseCollector):
         mouse.hook(self.mouse_used_callback)
 
         while self.is_run:
-            pass
+            time.sleep(1e6)
 
     def get_current_state(self) -> tuple:
         return self.metric_name, self.second_per_minute

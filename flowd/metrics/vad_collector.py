@@ -213,6 +213,7 @@ class VoiceActivationDetectionCollector(BaseCollector):
         self._collect_internal()
 
     def get_current_state(self) -> tuple:
+        logging.debug(f'Voice detected, seconds: {self.count}')
         return self.metric_name, self.count
 
     def cleanup(self) -> None:

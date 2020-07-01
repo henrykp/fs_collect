@@ -59,7 +59,7 @@ class MouseUsedSelectionCollector(BaseCollector):
         mouse.hook(self.mouse_selection_callback)
 
         while self.is_run:
-            pass
+            time.sleep(1e6)
 
     def get_current_state(self) -> tuple:
         return self.metric_name, self.count

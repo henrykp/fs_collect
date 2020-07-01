@@ -8,7 +8,7 @@ import threading
 import time
 from flowd.metrics import BaseCollector
 
-MODIFIERS = keyboard.all_modifiers
+MODIFIERS = keyboard.all_modifiers - {'shift', 'left shift', 'right shift'}
 
 POPULAR_SHORTCUTS = [
     # save
@@ -48,29 +48,32 @@ class PopularShortcutsCollector(BaseCollector):
 
     def __init__(self) -> None:
         self.count = 0  # for interval
-        self.is_running = True
+        self.is_run = True
 
     def shortcut_pressed(self):
         self.count += 1
+        logging.debug(f"Popular shortcut pressed {keyboard.get_hotkey_name()}")
 
     def stop_collect(self) -> None:
-        self.is_running = False
+        self.is_run = False
+        keyboard.remove_all_hotkeys()
 
     def start_collect(self) -> None:
-        self.is_running = True
         for h in POPULAR_SHORTCUTS:
             keyboard.add_hotkey(hotkey=h,
                                 callback=self.shortcut_pressed,
                                 args=(),
                                 timeout=0.1)
-        while self.is_running:
-            time.sleep(0.01)
+            logging.debug(f"Hotkey installed: {h}")
+        while self.is_run:
+            time.sleep(1e6)
 
     def get_current_state(self) -> tuple:
         return self.metric_name, self.count
 
     def cleanup(self) -> None:
         self.count = 0
+        self.is_run = True
 
 
 class ShortcutsCollector(BaseCollector):
@@ -84,22 +87,23 @@ class ShortcutsCollector(BaseCollector):
 
     def __init__(self) -> None:
         self.count = 0  # for interval
-        self.is_running = True
+        self.is_run = True
 
     def stop_collect(self) -> None:
-        self.is_running = False
+        self.is_run = False
+        keyboard.unhook(self.key_pressed)
 
     def start_collect(self) -> None:
-        self.is_running = True
         keyboard.on_press(self.key_pressed)
-        while self.is_running:
-            time.sleep(0.01)
+        while self.is_run:
+            time.sleep(1e6)
 
     def get_current_state(self) -> tuple:
         return self.metric_name, self.count
 
     def cleanup(self) -> None:
         self.count = 0
+        self.is_run = True
 
     def key_pressed(self, e) -> None:
         if keyboard.is_modifier(e.scan_code):
@@ -108,6 +112,7 @@ class ShortcutsCollector(BaseCollector):
         for m in MODIFIERS:
             if keyboard.is_pressed(m) and not keyboard.is_modifier(hk) and hk not in ALL_SHORTCUTS:
                 self.count += 1
+                logging.debug(f"Shortcut: {hk}")
                 return
 
 
@@ -121,26 +126,28 @@ class CodeAssistCollector(BaseCollector):
 
     def __init__(self) -> None:
         self.count = 0  # for interval
-        self.is_running = True
+        self.is_run = True
 
     def stop_collect(self) -> None:
-        self.is_running = False
+        self.is_run = False
+        keyboard.unhook(self.key_pressed)
 
     def start_collect(self) -> None:
-        self.is_running = True
         keyboard.on_press(self.key_pressed)
-        while self.is_running:
-            time.sleep(0.01)
+        while self.is_run:
+            time.sleep(1e6)
 
     def get_current_state(self) -> tuple:
         return self.metric_name, self.count
 
     def cleanup(self) -> None:
         self.count = 0
+        self.is_run = True
 
     def key_pressed(self, e) -> None:
         if keyboard.get_hotkey_name() in CODE_ASSIST_SHORTCUTS:
             self.count += 1
+            logging.debug(f"Code assist: {keyboard.get_hotkey_name()}")
 
 
 class FullLinesCollector(BaseCollector):
@@ -153,20 +160,21 @@ class FullLinesCollector(BaseCollector):
 
     def __init__(self) -> None:
         self.count = 0  # for interval
-        self.is_running = True
+        self.is_run = True
 
     def line_entered(self):
         self.count += 1
+        logging.debug(f"Full line entered: {keyboard.get_hotkey_name()}")
 
     def stop_collect(self) -> None:
-        self.is_running = False
+        self.is_run = False
+        keyboard.unhook_all()
 
     # Just a dynamic object to store attributes for the closures.
     class _State(object):
         pass
 
     def start_collect(self) -> None:
-        self.is_running = True
         state = self._State()
         state.current = ''
         state.time = -1
@@ -190,34 +198,35 @@ class FullLinesCollector(BaseCollector):
             else:
                 state.current += name
         keyboard.hook(handler)
-        while self.is_running:
-            time.sleep(0.01)
+        while self.is_run:
+            time.sleep(1e6)
 
     def get_current_state(self) -> tuple:
         return self.metric_name, self.count
 
     def cleanup(self) -> None:
         self.count = 0
+        self.is_run = True
 
 
 def collect(c):
-    x = threading.Thread(target=collector.start_collect, args=())
+    x = threading.Thread(target=c.start_collect, args=())
     logging.debug("Main    : create and start thread")
     x.start()
     logging.debug("Main    : wait for the thread to finish")
     time.sleep(20)
     logging.debug("Main    : stop collect")
-    collector.stop_collect()
+    c.stop_collect()
 
 
 def show_stats(c):
-    metric_name, value = collector.get_current_state()
+    metric_name, value = c.get_current_state()
     logging.info(f'metric_name {metric_name}')
     logging.info(f'value {value}')
 
     logging.debug("Main    : cleanup")
-    collector.cleanup()
-    metric_name, value = collector.get_current_state()
+    c.cleanup()
+    metric_name, value = c.get_current_state()
     logging.info(f'metric_name {metric_name}')
     logging.info(f'value {value}')
     assert value == 0
