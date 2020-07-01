@@ -10,13 +10,12 @@ import wmi
 import win32gui
 import win32process
 
-c = wmi.WMI()
-
 
 def get_app_name(hwnd) -> Optional[str]:
     """Get application filename given hwnd."""
     name = None
     _, pid = win32process.GetWindowThreadProcessId(hwnd)
+    c = wmi.WMI()
     for p in c.query('SELECT Name FROM Win32_Process WHERE ProcessId = %s' % str(pid)):
         name = p.Name
         break
@@ -48,8 +47,6 @@ def get_current_active_window() -> dict:
         title = "unknown"
 
     return {"app_name": app, "title": title}
-
-
 
 
 class LastInputInfo(Structure):
