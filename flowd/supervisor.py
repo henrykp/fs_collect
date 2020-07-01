@@ -1,6 +1,7 @@
 import datetime
 import importlib
 import logging
+import time
 import os
 import threading
 from pathlib import Path
@@ -50,7 +51,7 @@ class Supervisor:
             t.start()
 
         while not self._quit.is_set():
-            self._quit.wait(self.collect_interval)
+            time.sleep(self.collect_interval)
             threading.Thread(target=self.output_collected_metrics).start()
 
     def stop(self, timeout: float = None) -> None:
