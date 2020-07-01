@@ -3,32 +3,26 @@ name = "pypi"
 url = "https://pypi.python.org/simple"
 verify_ssl = true
 
-[[source]]
-name = "pytorch"
-url = "https://download.pytorch.org/whl/torch_stable.html"
-verify_ssl = true
-
 [dev-packages]
-setuptools = ">=41.0"
-mypy = ">=0.770"
 flake8 = "*"
+mypy = ">=0.770"
 pre-commit = "*"
-wheel = "*"
-scipy = "==1.4.1"
-numba = "==0.48"
-webrtcvad = "==2.0.10"
-psutil = "*"
-pyaudio = "*"
-pyannote = {audio = "*"}
-torch = {version = "==1.5.1+cpu",index = "pytorch"}
-torchvision = {version = "==0.6.1+cpu",index = "pytorch"}
+pyinstaller = "*"
+setuptools = ">=41.0"
 
 [packages]
 flowd = {editable = true,path = "."}
-wmi = "1.5.1"
-pywin32 = "228"
-pyannote = "*"
+"pyannote.audio" = "==2.0a1"
+keyboard = "*"
 mouse = "*"
+numba = "==0.48"
+psutil = "*"
+pyaudio = "*"
+pywin32 = "228"
+scipy = "==1.4.1"
+torch = {file = "https://download.pytorch.org/whl/cpu/torch-1.5.1%2Bcpu-cp36-cp36m-win_amd64.whl"}
+webrtcvad = "==2.0.10"
+wmi = "1.5.1"
 
 [requires]
 python_version = "3.6"
