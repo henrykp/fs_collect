@@ -5,6 +5,7 @@ repos:
       - id: check-yaml
       - id: check-toml
       - id: end-of-file-fixer
+        exclude: ^flowd/(metrics|utils)/
       - id: trailing-whitespace
 
   - repo: https://github.com/psf/black
@@ -12,18 +13,21 @@ repos:
     hooks:
       - id: black
         language_version: python3.8
+        exclude: ^flowd/(metrics|utils)/
 
   - repo: https://gitlab.com/pycqa/flake8
     rev: 3.8.3
     hooks:
       - id: flake8
         additional_dependencies: [flake8-bugbear]
+        exclude: ^flowd/(metrics|utils)/
 
   - repo: https://github.com/asottile/reorder_python_imports
     rev: v2.3.0
     hooks:
       - id: reorder-python-imports
         language_version: python3.8
+        exclude: ^flowd/(metrics|utils)/
         args:
            - --py3-plus
 
@@ -31,3 +35,4 @@ repos:
     rev: v0.782
     hooks:
       - id: mypy
+        exclude: ^flowd/(metrics|utils)/
