@@ -68,6 +68,27 @@ class AlertModeCollector(BaseCollector):
 if __name__ == '__main__':
     # Example of usage
     logging.basicConfig(level=logging.DEBUG, format="%(levelname)-8s %(message)s")
+    collector = PriorityModeCollector()
+    x = threading.Thread(target=collector.start_collect, args=())
+    logging.debug("Main    : create and start thread")
+    x.start()
+    logging.debug("Main    : wait for the thread to finish")
+    time.sleep(30)
+    logging.debug("Main    : stop collect")
+    collector.stop_collect()
+
+    metric_name, value = collector.get_current_state()
+    logging.info(f'metric_name {metric_name}')
+    logging.info(f'value {value}')
+
+    logging.debug("Main    : cleanup")
+    collector.cleanup()
+    metric_name, value = collector.get_current_state()
+    logging.info(f'metric_name {metric_name}')
+    logging.info(f'value {value}')
+    assert value == 0
+
+    logging.basicConfig(level=logging.DEBUG, format="%(levelname)-8s %(message)s")
     collector = AlertModeCollector()
     x = threading.Thread(target=collector.start_collect, args=())
     logging.debug("Main    : create and start thread")

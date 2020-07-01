@@ -48,19 +48,23 @@ class PopularShortcutsCollector(BaseCollector):
 
     def __init__(self) -> None:
         self.count = 0  # for interval
+        self.is_running = True
 
     def shortcut_pressed(self):
         self.count += 1
 
     def stop_collect(self) -> None:
-        return
+        self.is_running = False
 
     def start_collect(self) -> None:
+        self.is_running = True
         for h in POPULAR_SHORTCUTS:
             keyboard.add_hotkey(hotkey=h,
                                 callback=self.shortcut_pressed,
                                 args=(),
                                 timeout=0.1)
+        while self.is_running:
+            time.sleep(0.01)
 
     def get_current_state(self) -> tuple:
         return self.metric_name, self.count
@@ -80,12 +84,16 @@ class ShortcutsCollector(BaseCollector):
 
     def __init__(self) -> None:
         self.count = 0  # for interval
+        self.is_running = True
 
     def stop_collect(self) -> None:
-        return
+        self.is_running = False
 
     def start_collect(self) -> None:
+        self.is_running = True
         keyboard.on_press(self.key_pressed)
+        while self.is_running:
+            time.sleep(0.01)
 
     def get_current_state(self) -> tuple:
         return self.metric_name, self.count
@@ -113,12 +121,16 @@ class CodeAssistCollector(BaseCollector):
 
     def __init__(self) -> None:
         self.count = 0  # for interval
+        self.is_running = True
 
     def stop_collect(self) -> None:
-        return
+        self.is_running = False
 
     def start_collect(self) -> None:
+        self.is_running = True
         keyboard.on_press(self.key_pressed)
+        while self.is_running:
+            time.sleep(0.01)
 
     def get_current_state(self) -> tuple:
         return self.metric_name, self.count
@@ -141,18 +153,20 @@ class FullLinesCollector(BaseCollector):
 
     def __init__(self) -> None:
         self.count = 0  # for interval
+        self.is_running = True
 
     def line_entered(self):
         self.count += 1
 
     def stop_collect(self) -> None:
-        return
+        self.is_running = False
 
     # Just a dynamic object to store attributes for the closures.
     class _State(object):
         pass
 
     def start_collect(self) -> None:
+        self.is_running = True
         state = self._State()
         state.current = ''
         state.time = -1
@@ -176,6 +190,8 @@ class FullLinesCollector(BaseCollector):
             else:
                 state.current += name
         keyboard.hook(handler)
+        while self.is_running:
+            time.sleep(0.01)
 
     def get_current_state(self) -> tuple:
         return self.metric_name, self.count
@@ -184,10 +200,7 @@ class FullLinesCollector(BaseCollector):
         self.count = 0
 
 
-if __name__ == '__main__':
-    # Example of usage
-    logging.basicConfig(level=logging.DEBUG, format="%(levelname)-8s %(message)s")
-    collector = FullLinesCollector()
+def collect(c):
     x = threading.Thread(target=collector.start_collect, args=())
     logging.debug("Main    : create and start thread")
     x.start()
@@ -196,6 +209,8 @@ if __name__ == '__main__':
     logging.debug("Main    : stop collect")
     collector.stop_collect()
 
+
+def show_stats(c):
     metric_name, value = collector.get_current_state()
     logging.info(f'metric_name {metric_name}')
     logging.info(f'value {value}')
@@ -206,3 +221,23 @@ if __name__ == '__main__':
     logging.info(f'metric_name {metric_name}')
     logging.info(f'value {value}')
     assert value == 0
+
+
+if __name__ == '__main__':
+    # Example of usage
+    logging.basicConfig(level=logging.DEBUG, format="%(levelname)-8s %(message)s")
+    collector = PopularShortcutsCollector()
+    collect(collector)
+    show_stats(collector)
+
+    collector = ShortcutsCollector()
+    collect(collector)
+    show_stats(collector)
+
+    collector = CodeAssistCollector()
+    collect(collector)
+    show_stats(collector)
+
+    collector = FullLinesCollector()
+    collect(collector)
+    show_stats(collector)
