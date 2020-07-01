@@ -43,6 +43,7 @@ class MouseUsedSelectionCollector(BaseCollector):
                         selection_sec = event.time - self._pressed_event.time
                         if selection_sec <= self.MOVING_MAX_DURATION_SEC:
                             self.count += 1
+                            logging.debug(self.count)
 
                 # clean up events
                 self._pressed_event = None
