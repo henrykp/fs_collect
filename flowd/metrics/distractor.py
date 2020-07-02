@@ -16,7 +16,7 @@ class DistractorWindowCollector(BaseCollector):
     ---
     Number of 15 seconds intervals per minute (for example, 3 minutes  = 12 intervals)﻿
     """
-    metric_name = "distractor_window"
+    metric_name = "Distraction Class Window Activated (times)"
 
     APPS = (
         ('Teams', re.compile(r'.*| Microsoft Teams﻿')),

@@ -12,7 +12,7 @@ class AFKCollector(BaseCollector):
     ---
     Seconds per minute﻿, AFK timeout - 30 sec﻿
     """
-    metric_name = "afk"
+    metric_name = "Time in AFK (seconds)"
     AFK_TIMEOUT_SEC = 30
 
     def __init__(self) -> None:

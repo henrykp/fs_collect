@@ -13,7 +13,7 @@ class MouseUsedSelectionCollector(BaseCollector):
     ---
     Number per minute﻿ (Max duration for selection is 10 sec)
     """
-    metric_name = "mouse_used_selection"
+    metric_name = "Mouse Used for Selection (times)"
 
     LEFT_BUTTON = 'left'
     EVENT_TYPE_PRESSED = 'down'

@@ -4,7 +4,7 @@ from flowd.metrics import BaseCollector
 
 
 class MetricCollector(BaseCollector):
-    metric_name = "test_metric"
+    metric_name = "Test Metric"
 
     def __init__(self) -> None:
         self.count = 0
@@ -14,9 +14,10 @@ class MetricCollector(BaseCollector):
         self.should_continue = False
 
     def start_collect(self) -> None:
-        while self.should_continue:
-            self.count += 1
-            time.sleep(1)
+        # while self.should_continue:
+        #     self.count += 1
+        #     time.sleep(1)
+        pass
 
     def get_current_state(self) -> Tuple[str, float]:
         return self.metric_name, self.count

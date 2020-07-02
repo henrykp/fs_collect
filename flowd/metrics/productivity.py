@@ -17,7 +17,7 @@ class ProductivityWindowCollector(BaseCollector):
     ---
     Number of 15 seconds intervals per minute (for example, 3 minutes = 12 intervals)﻿
     """
-    metric_name = "productivity_window"
+    metric_name = "Productivity Class Window Activated (times)"
 
     APPS = (
         ('eclipse', re.compile(r'.*Eclipse IDE﻿')),

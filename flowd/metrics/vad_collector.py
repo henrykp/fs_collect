@@ -30,7 +30,7 @@ class VoiceActivationDetectionCollector(BaseCollector):
     ---
     Seconds per minute﻿
     """
-    metric_name = "voice_activation"
+    metric_name = "Voice Activity Detected (seconds)"
 
     def __init__(self) -> None:
         self.count = 0  # for interval
@@ -185,7 +185,7 @@ class VoiceActivationDetectionCollector(BaseCollector):
     @staticmethod
     def is_busy() -> bool:
         load = psutil.cpu_percent(percpu=True)
-        return min(load) > 100
+        return min(load) > 50
 
     def _get_speech_duration(self, segment):
         if self.is_busy():

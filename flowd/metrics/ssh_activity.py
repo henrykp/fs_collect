@@ -11,18 +11,19 @@ class SSHActivityCollector(BaseCollector):
     Seconds in minute
     """
 
-    metric_name = "ssh_activity"
+    metric_name = "SSH Session Active (seconds)"
 
     PORTS = [21, 22]
 
     def __init__(self) -> None:
-        self.count = 0
         self.is_run = True
+        self.time_in_mode = 0
 
     def stop_collect(self) -> None:
         self.is_run = False
 
     def start_collect(self) -> None:
+        start_time = time.time()
         while self.is_run:
             for x in psutil.net_connections(kind="all"):
                 # get remote address
@@ -30,16 +31,15 @@ class SSHActivityCollector(BaseCollector):
                     r_address, r_port = x.raddr
                     if r_port in self.PORTS and x.status == psutil.CONN_ESTABLISHED:
                         logging.debug(x)
-                        self.count += 1
-
-            logging.debug(f'Current state {self.metric_name} {self.count}')
-            time.sleep(1)
+                        self.time_in_mode += time.time() - start_time
+                        start_time = time.time()
+            time.sleep(1e6)
 
     def get_current_state(self) -> tuple:
-        return self.metric_name, self.count
+        return self.metric_name, int(round(self.time_in_mode))
 
     def cleanup(self) -> None:
-        self.count = 0
+        self.time_in_mode = 0
         self.is_run = True
 
 

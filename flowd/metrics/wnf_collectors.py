@@ -10,7 +10,7 @@ ALERT_MODE = 2
 
 class PriorityModeCollector(BaseCollector):
 
-    metric_name = "priority_mode_metric"
+    metric_name = "Time in Priority Mode (seconds)"
 
     def __init__(self) -> None:
         self.time_in_mode = 0
@@ -20,7 +20,6 @@ class PriorityModeCollector(BaseCollector):
         self.is_run = False
 
     def start_collect(self) -> None:
-        self.is_run = True
         self._collect_time_in_mode(PRIORITY_MODE)
 
     def _collect_time_in_mode(self, mode):
@@ -37,12 +36,13 @@ class PriorityModeCollector(BaseCollector):
         return self.metric_name, t
 
     def cleanup(self) -> None:
+        self.is_run = True
         self.time_in_mode = 0
 
 
 class AlertModeCollector(BaseCollector):
 
-    metric_name = "alert_mode_metric"
+    metric_name = "Time in Alerts Only Mode (seconds)"
 
     def __init__(self) -> None:
         self.time_in_mode = 0
@@ -52,7 +52,6 @@ class AlertModeCollector(BaseCollector):
         self.is_run = False
 
     def start_collect(self) -> None:
-        self.is_run = True
         start_time = time.time()
         while self.is_run:
             if wnf.do_read(wnf.format_state_name("WNF_SHEL_QUIETHOURS_ACTIVE_PROFILE_CHANGED")) == ALERT_MODE:
@@ -67,6 +66,7 @@ class AlertModeCollector(BaseCollector):
 
     def cleanup(self) -> None:
         self.time_in_mode = 0
+        self.is_run = True
 
 
 if __name__ == '__main__':

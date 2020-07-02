@@ -10,7 +10,7 @@ class ActivityWindowCollector(BaseCollector):
     ---
     Number per minute﻿
     """
-    metric_name = "activity_window"
+    metric_name = "Active Window Changed (times)"
 
     def __init__(self) -> None:
         self.count = 0

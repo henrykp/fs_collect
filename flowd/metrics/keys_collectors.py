@@ -44,7 +44,7 @@ class PopularShortcutsCollector(BaseCollector):
     ---------------
     Number per minute﻿
     """
-    metric_name = "popular_shortcuts"
+    metric_name = "Popular Shortcuts Used (times)"
 
     def __init__(self) -> None:
         self.count = 0  # for interval
@@ -83,7 +83,7 @@ class ShortcutsCollector(BaseCollector):
     ---------------
     Number per minute﻿
     """
-    metric_name = "all_shortcuts"
+    metric_name = "Any Shortcut Used (times)"
 
     def __init__(self) -> None:
         self.count = 0  # for interval
@@ -122,7 +122,7 @@ class CodeAssistCollector(BaseCollector):
     ---------------
     Number per minute﻿
     """
-    metric_name = "code_assist_shortcuts"
+    metric_name = "Code Assist Activated (times)"
 
     def __init__(self) -> None:
         self.count = 0  # for interval
@@ -156,7 +156,7 @@ class FullLinesCollector(BaseCollector):
     ---------------
     Number per minute﻿
     """
-    metric_name = "full_lines"
+    metric_name = "Full Lines Entered (times)"
 
     def __init__(self) -> None:
         self.count = 0  # for interval

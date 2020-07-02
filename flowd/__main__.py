@@ -23,7 +23,7 @@ def on_quit(s: Supervisor) -> Callable:
 
 
 def main() -> None:
-    logging.basicConfig(level=logging.DEBUG, format="%(levelname)-8s %(message)s")
+    logging.basicConfig(level=logging.INFO, format="%(levelname)-8s %(message)s")
 
     s = Supervisor()
     for sig in EXIT_SIGNALS:

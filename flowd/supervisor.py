@@ -29,13 +29,29 @@ class Supervisor:
         self._quit = threading.Event()
         self._active: List[CollectorThread] = []
         self._data: Optional[str] = None
+        self._data_pivot: Optional[str] = None
+
+    @staticmethod
+    def _sort_collectors(element):
+        name, v = element.get_current_state()
+        return name
 
     def configure(self) -> None:
         os.makedirs(self.collected_data_path, exist_ok=True)
         self._data = os.path.join(self.collected_data_path, "data.csv")
+        self._data_pivot = os.path.join(self.collected_data_path, "data_pivot.csv")
         logging.info(f"storing collected data in {self._data}")
 
         self._collectors = lookup_handlers(collect_metric_modules())
+        self._collectors.sort(key=self._sort_collectors)
+
+        if not os.path.exists(self._data_pivot) or os.path.getsize(self._data_pivot) == 0:
+            with open(self._data_pivot, "a") as f1:
+                header = "date"
+                for c in self._collectors:
+                    name, v = c.get_current_state()
+                    header = f"{header},{name}"
+                f1.write(f"{header}\n")
 
     def run(self) -> None:
         if not self._collectors:
@@ -67,12 +83,15 @@ class Supervisor:
 
         ts = datetime.datetime.now()
         with open(self._data, "a") as f:
-            for ct in self._active:
-                if not ct.is_alive():
-                    continue
-
-                name, current = ct.pop()
-                f.write(f"{name},{current},{ts}\n")
+            with open(self._data_pivot, "a") as f1:
+                row = ""
+                for ct in self._active:
+                    name, current = ct.pop()
+                    if not ct.is_alive():
+                        current = -1
+                    f.write(f"{name},{current},{ts}\n")
+                    row = f"{row},{current}"
+                f1.write(f"{ts}{row}\n")
 
 
 class CollectorThread(threading.Thread):

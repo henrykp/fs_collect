@@ -12,7 +12,7 @@ class MouseUsedCollector(BaseCollector):
     Seconds per minute﻿
     """
 
-    metric_name = "mouse_used"
+    metric_name = "Mouse Used (seconds)"
 
     TIMEOUT_NOT_USED_SEC = 3
 
