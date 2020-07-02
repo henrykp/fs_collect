@@ -7,7 +7,7 @@ from flowd.metrics import BaseCollector
 
 
 BROWSER_REGEXP = r'(.*GitHub.*)|(.*Stack Overflow.*)|(Python\.org)|' \
-                 r'(.*Google.*)|(PyPI)|(.*epam.*)﻿|' \
+                 r'(.*Google.*)|(PyPI)|(.*epam.*)|' \
                  r'(.*jira.*)|(.*Python.*)'
 
 
@@ -20,17 +20,17 @@ class ProductivityWindowCollector(BaseCollector):
     metric_name = "Productivity Class Window Activated (times)"
 
     APPS = (
-        ('eclipse', re.compile(r'.*Eclipse IDE﻿')),
-        ('pycharm', re.compile(r'.* - PyCharm')),
+        ('eclipse', re.compile(r'.*Eclipse IDE')),
+        ('pycharm', re.compile(r'.*PyCharm')),
         ('python', re.compile(r'Python \d.\d')),
-        ('dbeaver', re.compile(r'DBeaver \d\.\d.*﻿')),
-        ('explorer', re.compile(r'FileExplorer.*﻿')),
-        ('VISIO', re.compile(r'.*Visio.*﻿')),
-        ('putty', re.compile(r'.* - PuTTY')),
+        ('dbeaver', re.compile(r'DBeaver \d\.\d.*')),
+        ('explorer', re.compile(r'FileExplorer.*')),
+        ('VISIO', re.compile(r'.*Visio.*')),
+        ('putty', re.compile(r'.*PuTTY')),
         ('cmd', re.compile(r'.*cmd.exe*')),
-        ('GitHubDesktop', re.compile(r'GitHub Desktop.*﻿﻿')),
-        ('Far', re.compile(r'.* - Far.*﻿')),
-        ('ONENOTE', re.compile(r'.*﻿')),
+        ('GitHubDesktop', re.compile(r'GitHub Desktop.*')),
+        ('Far', re.compile(r'.*Far.*')),
+        ('ONENOTE', re.compile(r'.*')),
         ('Taskmgr', re.compile(r'.*')),
         # browsers
         ('opera', re.compile(BROWSER_REGEXP, re.I)),
@@ -55,7 +55,6 @@ class ProductivityWindowCollector(BaseCollector):
 
             if self.APPS[ind][1].match(cur_win['title']):
                 is_productive_title = True
-
         except ValueError:
             pass
 

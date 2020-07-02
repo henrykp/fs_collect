@@ -88,13 +88,15 @@ class ShortcutsCollector(BaseCollector):
     def __init__(self) -> None:
         self.count = 0  # for interval
         self.is_run = True
+        keyboard.on_press(self.key_pressed)
+        self.collecting = False
 
     def stop_collect(self) -> None:
         self.is_run = False
-        keyboard.unhook(self.key_pressed)
+        self.collecting = False
 
     def start_collect(self) -> None:
-        keyboard.on_press(self.key_pressed)
+        self.collecting = True
         while self.is_run:
             time.sleep(1e6)
 
@@ -106,7 +108,7 @@ class ShortcutsCollector(BaseCollector):
         self.is_run = True
 
     def key_pressed(self, e) -> None:
-        if keyboard.is_modifier(e.scan_code):
+        if not self.collecting or keyboard.is_modifier(e.scan_code):
             return
         hk = keyboard.get_hotkey_name()
         for m in MODIFIERS:
@@ -127,12 +129,14 @@ class CodeAssistCollector(BaseCollector):
     def __init__(self) -> None:
         self.count = 0  # for interval
         self.is_run = True
+        self.collecting = False
 
     def stop_collect(self) -> None:
         self.is_run = False
-        keyboard.unhook(self.key_pressed)
+        self.collecting = False
 
     def start_collect(self) -> None:
+        self.collecting = True
         keyboard.on_press(self.key_pressed)
         while self.is_run:
             time.sleep(1e6)
@@ -145,6 +149,8 @@ class CodeAssistCollector(BaseCollector):
         self.is_run = True
 
     def key_pressed(self, e) -> None:
+        if not self.collecting:
+            return
         if keyboard.get_hotkey_name() in CODE_ASSIST_SHORTCUTS:
             self.count += 1
             logging.debug(f"Code assist: {keyboard.get_hotkey_name()}")

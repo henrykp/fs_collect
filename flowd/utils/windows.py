@@ -16,8 +16,6 @@ def get_app_name(hwnd) -> Optional[str]:
     name = None
     _, pid = win32process.GetWindowThreadProcessId(hwnd)
     c = wmi.WMI()
-    q = 'SELECT Name FROM Win32_Process WHERE ProcessId = %s' % str(pid)
-    print(f'Query: {q}')
     for p in c.query('SELECT Name FROM Win32_Process WHERE ProcessId = %s' % str(pid)):
         name = p.Name
         break

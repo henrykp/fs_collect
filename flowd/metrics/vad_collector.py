@@ -185,7 +185,7 @@ class VoiceActivationDetectionCollector(BaseCollector):
     @staticmethod
     def is_busy() -> bool:
         load = psutil.cpu_percent(percpu=True)
-        return min(load) > 50
+        return min(load) > 60
 
     def _get_speech_duration(self, segment):
         if self.is_busy():
@@ -206,7 +206,10 @@ class VoiceActivationDetectionCollector(BaseCollector):
 
     def stop_collect(self) -> None:
         self.leave = True
-        os.remove(self.path)
+        try:
+            os.remove(self.path)
+        except FileNotFoundError:
+            pass
 
     def start_collect(self) -> None:
         self.leave = False

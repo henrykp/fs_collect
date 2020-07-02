@@ -19,11 +19,11 @@ class DistractorWindowCollector(BaseCollector):
     metric_name = "Distraction Class Window Activated (times)"
 
     APPS = (
-        ('Teams', re.compile(r'.*| Microsoft Teams﻿')),
+        ('Teams', re.compile(r'.*| Microsoft Teams')),
         ('Telegram', re.compile(r'Telegram \(.*')),
         ('SkypeApp', re.compile(r'.*Skype.*')),
-        ('OUTLOOK', re.compile(r'.*- Outlook﻿﻿')),
-        ('LockApp', re.compile(r'.*Windows Default Lock Screen.*﻿﻿﻿')),
+        ('OUTLOOK', re.compile(r'.*Outlook')),
+        ('LockApp', re.compile(r'.*Windows Default Lock Screen.*')),
         ('Viber', re.compile(r'.*Viber.*﻿')),
         # browsers
         ('opera', re.compile(BROWSER_REGEXP, re.I)),
