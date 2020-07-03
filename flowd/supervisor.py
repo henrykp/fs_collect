@@ -8,6 +8,8 @@ from pathlib import Path
 from types import ModuleType
 from typing import List
 from typing import Optional
+from flowd.model import logistic_regression
+from flowd.utils import wnf
 
 import pythoncom
 
@@ -30,6 +32,10 @@ class Supervisor:
         self._active: List[CollectorThread] = []
         self._data: Optional[str] = None
         self._data_pivot: Optional[str] = None
+        self.model = logistic_regression.train_model()
+        self.flow_threshold = 70
+        self._fs_data: Optional[str] = None
+        self._flow_state = 0
 
     @staticmethod
     def _sort_collectors(element):
@@ -40,11 +46,14 @@ class Supervisor:
         os.makedirs(self.collected_data_path, exist_ok=True)
         self._data = os.path.join(self.collected_data_path, "data.csv")
         self._data_pivot = os.path.join(self.collected_data_path, "data_pivot.csv")
+        self._fs_data = os.path.join(self.collected_data_path, "fs_data.csv")
         logging.info(f"storing collected data in {self._data}")
 
         self._collectors = lookup_handlers(collect_metric_modules())
         self._collectors.sort(key=self._sort_collectors)
+        self.write_headers()
 
+    def write_headers(self) -> None:
         if not os.path.exists(self._data_pivot) or os.path.getsize(self._data_pivot) == 0:
             with open(self._data_pivot, "a") as f1:
                 header = "date"
@@ -52,6 +61,9 @@ class Supervisor:
                     name, v = c.get_current_state()
                     header = f"{header},{name}"
                 f1.write(f"{header}\n")
+        if not os.path.exists(self._fs_data) or os.path.getsize(self._fs_data) == 0:
+            with open(self._fs_data, "a") as fs:
+                fs.write("Date,Flow State Prediction (%)\n")
 
     def run(self) -> None:
         if not self._collectors:
@@ -69,6 +81,13 @@ class Supervisor:
         while not self._quit.is_set():
             time.sleep(self.collect_interval)
             threading.Thread(target=self.output_collected_metrics).start()
+            self._flow_state = self.check_flow_state()
+            wnf.set_focus_mode(2 if self._flow_state > self.flow_threshold else 0)
+
+    def check_flow_state(self) -> bool:
+        p = int(logistic_regression.predict(logistic_regression.pivot_stats(), self.model, 15))
+        logging.info(f'Last 15 minutes prediction {p * 100}%')
+        return p
 
     def stop(self, timeout: float = None) -> None:
         self._quit.set()
@@ -92,6 +111,8 @@ class Supervisor:
                     f.write(f"{name},{current},{ts}\n")
                     row = f"{row},{current}"
                 f1.write(f"{ts}{row}\n")
+        with open(self._fs_data, "a") as fs:
+            fs.write(f"{ts},{self._flow_state}\n")
 
 
 class CollectorThread(threading.Thread):

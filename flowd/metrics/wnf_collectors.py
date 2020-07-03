@@ -13,7 +13,7 @@ class PriorityModeCollector(BaseCollector):
     metric_name = "Time in Priority Mode (seconds)"
 
     def __init__(self) -> None:
-        self.time_in_mode = 0
+        self.time_in_mode = 0.0
         self.is_run = True
 
     def stop_collect(self) -> None:
@@ -42,7 +42,7 @@ class AlertModeCollector(BaseCollector):
     metric_name = "Time in Alerts Only Mode (seconds)"
 
     def __init__(self) -> None:
-        self.time_in_mode = 0
+        self.time_in_mode = 0.0
         self.is_run = True
 
     def stop_collect(self) -> None:
