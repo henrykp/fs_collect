@@ -14,7 +14,7 @@ if __name__ == '__main__':
         for line in f:
             metric_name, value, ts = line.strip('\n').split(',')
 
-            if metric_name == 'test_metric':
+            if metric_name == 'Test Metric':
                 # filter test_metric
                 continue
 
@@ -31,11 +31,12 @@ if __name__ == '__main__':
 
     # set same length
     for key, values in result_data.items():
+        print(key)
         result_data[key] = values[:length_data]
 
     df = pd.DataFrame(data=result_data)
     df.to_csv('data_.csv')
     df['dates'] = pd.to_datetime(df['dates'], infer_datetime_format=True)
 
-    df.plot(x='dates', y=['activity_window', 'afk'])
+    df.plot(x='dates')
     plt.show()
