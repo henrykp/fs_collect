@@ -9,6 +9,7 @@ from typing import Optional
 import wmi
 import win32gui
 import win32process
+import time
 
 
 def get_app_name(hwnd) -> Optional[str]:
@@ -18,6 +19,7 @@ def get_app_name(hwnd) -> Optional[str]:
     c = wmi.WMI()
     for p in c.query('SELECT Name FROM Win32_Process WHERE ProcessId = %s' % str(pid)):
         name = p.Name
+        time.sleep(1e6)
         break
     return name
 

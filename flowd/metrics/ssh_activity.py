@@ -33,7 +33,7 @@ class SSHActivityCollector(BaseCollector):
                         logging.debug(x)
                         self.time_in_mode += time.time() - start_time
                         start_time = time.time()
-            time.sleep(1e6)
+            time.sleep(1)
 
     def get_current_state(self) -> tuple:
         return self.metric_name, int(round(self.time_in_mode))

@@ -20,15 +20,12 @@ class PriorityModeCollector(BaseCollector):
         self.is_run = False
 
     def start_collect(self) -> None:
-        self._collect_time_in_mode(PRIORITY_MODE)
-
-    def _collect_time_in_mode(self, mode):
         start_time = time.time()
         while self.is_run:
             if wnf.do_read(wnf.format_state_name("WNF_SHEL_QUIETHOURS_ACTIVE_PROFILE_CHANGED")) == PRIORITY_MODE:
                 self.time_in_mode += time.time() - start_time
                 start_time = time.time()
-            time.sleep(1e6)
+            time.sleep(1)
 
     def get_current_state(self) -> tuple:
         t = int(round(self.time_in_mode))
@@ -57,7 +54,7 @@ class AlertModeCollector(BaseCollector):
             if wnf.do_read(wnf.format_state_name("WNF_SHEL_QUIETHOURS_ACTIVE_PROFILE_CHANGED")) == ALERT_MODE:
                 self.time_in_mode += time.time() - start_time
                 start_time = time.time()
-            time.sleep(1e6)
+            time.sleep(1)
 
     def get_current_state(self) -> tuple:
         t = int(round(self.time_in_mode))
@@ -77,7 +74,7 @@ if __name__ == '__main__':
     logging.debug("Main    : create and start thread")
     x.start()
     logging.debug("Main    : wait for the thread to finish")
-    time.sleep(30)
+    time.sleep(10)
     logging.debug("Main    : stop collect")
     collector.stop_collect()
 
