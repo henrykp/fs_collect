@@ -84,9 +84,9 @@ class Supervisor:
             self._flow_state = self.check_flow_state()
             wnf.set_focus_mode(2 if self._flow_state > self.flow_threshold else 0)
 
-    def check_flow_state(self) -> bool:
-        p = int(logistic_regression.predict(logistic_regression.pivot_stats(), self.model, 15))
-        logging.info(f'Last 15 minutes prediction {p * 100}%')
+    def check_flow_state(self) -> float:
+        p = logistic_regression.predict(logistic_regression.pivot_stats(), self.model, 15) * 100
+        logging.info(f'Last 15 minutes prediction {p}%')
         return p
 
     def stop(self, timeout: float = None) -> None:
