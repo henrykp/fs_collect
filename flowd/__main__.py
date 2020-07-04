@@ -6,6 +6,8 @@ from typing import Any
 from typing import Callable
 from typing import NoReturn
 
+from flowd.integrations import Event
+from flowd.integrations import MicrosoftGraph
 from flowd.supervisor import Supervisor
 
 EXIT_SIGNALS = [signal.SIGTERM, signal.SIGINT]
@@ -24,6 +26,10 @@ def on_quit(s: Supervisor) -> Callable:
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)-8s %(message)s")
+    if "--with-outlook" in sys.argv:
+        graph = MicrosoftGraph.from_env()
+        graph.authenticate()
+        graph.schedule_meeting(Event())
 
     s = Supervisor()
     for sig in EXIT_SIGNALS:

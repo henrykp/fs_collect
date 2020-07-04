@@ -23,6 +23,10 @@ scipy = "==1.4.1"
 torch = {file = "https://download.pytorch.org/whl/cpu/torch-1.5.1%2Bcpu-cp36-cp36m-win_amd64.whl"}
 webrtcvad = "==2.0.10"
 wmi = "1.5.1"
+requests = "*"
+flask = "*"
+werkzeug = "*"
+msal = "*"
 
 [requires]
 python_version = "3.6"
